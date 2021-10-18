@@ -1,0 +1,230 @@
+JS FILE
+
+import React, { useEffect, useState, useRef } from "react";
+import { Accordion, Button, Icon, Input, Table } from "@scuf/common";
+import SelectDropdown from "../../Shared/SelectDropdown";
+import { MessageConstants } from "../../../constants/Message.constants";
+import "./CreateSimulation.scss";
+import { SimulationModel } from "../../../dataModels/simulation/Simulation.model";
+
+const CreateSimulation = () => {
+  const [noOfRows, setNoOfRows] = useState(1);
+  const [isDeleteRowDisabled, setIsDeleteRowDisabled] = useState(true);
+  const [simulationDetails, setSimulationDetails] = useState([]);
+  const [projectNumber, setProjectNumber] = useState();
+  const [selectedTechnology, setSelectedTechnology] = useState("");
+  const [selectedFile, setSelectedFile] = useState();
+  const [currentElement, setCurrentElement] = useState();
+  const inputFile = useRef(null);
+
+  const createFormData = () => {
+    let simulationModel = new SimulationModel();
+    let elementIndex = currentElement.toString().match(/\d/g);
+    simulationModel.projectNumber = elementIndex;
+    simulationDetails.push(simulationModel);
+    console.log(elementIndex);
+    console.log(simulationDetails[elementIndex]);
+  };
+
+  const addRow = () => {
+    setNoOfRows(noOfRows + 1);
+  };
+
+  const deleteRow = () => {
+    setNoOfRows(noOfRows - 1);
+  };
+
+  const clickEvent = (e) => {
+    setCurrentElement(e.target.id);
+  };
+
+  const isNumber = (e) => {
+    setProjectNumber(e);
+  };
+
+  const handleTechnologyChange = (event) => {
+    setSelectedTechnology(event);
+  };
+
+  const browseFilesClick = () => {
+    inputFile.current.click();
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files;
+    setSelectedFile(file);
+    noOfRows === 1
+      ? setNoOfRows(file.length)
+      : setNoOfRows(noOfRows + file.length);
+  };
+
+  const uploadSimulations = (event) => {
+    event.preventDefault();
+   console.log(event);
+  };
+
+  useEffect(() => {
+    if (noOfRows === 1) setIsDeleteRowDisabled(true);
+    else setIsDeleteRowDisabled(false);
+    if(currentElement!= null){
+      createFormData();
+    let element = document.getElementById(currentElement);
+      if (isNaN(projectNumber) && typeof projectNumber !== "undefined")
+      element.classList.add("error");
+    else
+      element.classList.remove("error");
+    }
+  }, [noOfRows, projectNumber, currentElement, createFormData]);
+
+  return (
+    <div className="rapidpeds-create-simulation-wrapper">
+      <Accordion className="create-simulation-accordion">
+        <Accordion.Content title="Create Simulations">
+          <form className="create-simulation-form">
+            <Table>
+              <Table.Header>
+                <Table.HeaderCell
+                  content={MessageConstants.PROJECT_NUMBER_HEADER}
+                />
+                <Table.HeaderCell
+                  content={MessageConstants.PROJECT_DESC_HEADER}
+                />
+                <Table.HeaderCell>
+                  {MessageConstants.TECHNOLOGY_HEADER}
+                  <SelectDropdown
+                    placeholder="Select"
+                    isRequired={true}
+                    onDropDownSelect={handleTechnologyChange}
+                  />
+                </Table.HeaderCell>
+                <Table.HeaderCell
+                  content={MessageConstants.SIMULATION_NAME_HEADER}
+                />
+                <Table.HeaderCell
+                  content={MessageConstants.UPLOAD_FILE_HEADER}
+                />
+                <Table.HeaderCell content="" />
+                <Table.HeaderCell content="" />
+              </Table.Header>
+              <Table.Body>
+                {[...Array(noOfRows)].map((elementInArray, index) => {
+                  return (
+                    <Table.Row className="form-input" key={index}>
+                      <Table.Cell>
+                        <Input
+                          id={"projectNumber" + index.toString()}
+                          type="text"
+                          placeholder="Input"
+                          icon="edit"
+                          indicator="required"
+                          onChange={isNumber}
+                          onClick={clickEvent}
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Input
+                        id={"projectDesc" + index.toString()}
+                          type="text"
+                          placeholder="Input"
+                          icon="edit"
+                          indicator="required"
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <SelectDropdown
+                        id={"technology"+ index.toString()}
+                          placeholder="Select"
+                          isRequired={true}
+                          onDropDownSelect={handleTechnologyChange}
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Input
+                        id={"simulationName"+ index.toString()}
+                          type="text"
+                          placeholder="Input"
+                          icon="edit"
+                          indicator="required"
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="btn-container">
+                          <input
+                            type="file"
+                            id="file"
+                            ref={inputFile}
+                            style={{ display: "none" }}
+                            multiple={true}
+                            accept={MessageConstants.ACCEPTABLE_FILES_EXT}
+                            onChange={handleFileChange}
+                          />
+                          <Button
+                            type="primary"
+                            size="small"
+                            content={MessageConstants.BROWSE_BUTTON}
+                            onClick={browseFilesClick}
+                          />
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="btn-icon-container">
+                          <Button size="medium" type="link" onClick={addRow}>
+                            <Icon
+                              name="badge-plus"
+                              root="common"
+                              size="medium"
+                              color="green"
+                              style={{ cursor: "pointer" }}
+                            />
+                          </Button>
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <div className="btn-icon-container">
+                          <Button
+                            size="medium"
+                            type="link"
+                            onClick={deleteRow}
+                            disabled={isDeleteRowDisabled}
+                          >
+                            <Icon
+                              name="badge-delete"
+                              root="common"
+                              size="medium"
+                              color="red"
+                              style={{ cursor: "pointer" }}
+                            />
+                          </Button>
+                        </div>
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })}
+              </Table.Body>
+            </Table>
+            <div className="btn-container">
+              <Button
+                type="primary"
+                size="small"
+                content={MessageConstants.UPLOAD_BUTTON}
+                actionType="submit"
+                onClick={uploadSimulations}
+              />
+            </div>
+          </form>
+        </Accordion.Content>
+      </Accordion>
+    </div>
+  );
+};
+
+export default CreateSimulation;
+
+MODEL
+
+export class SimulationModel {
+    projectNumber = "";
+    projectDescription = "";
+    technologyName = "";
+    simulationName = "";
+}
